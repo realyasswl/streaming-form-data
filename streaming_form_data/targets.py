@@ -15,19 +15,6 @@ class BaseTarget:
         self._finished = False
         self._validator = validator
 
-    # 'multipart_filename ' is filled before start() call.
-    # It contains optional 'filename' value from 'Content-Disposition' header
-    # Default value is None in case 'filename' is not present.
-    #
-    # NOTE! You should be very careful with this value
-    #       because it comes from the user.
-    #       You should never use it without filtering
-    #       to construct filename on disk.
-    #
-    #       Example library for filtering user strings
-    #       for use in URLs, filenames:
-    #       https://github.com/un33k/python-slugify
-
     def _validate(self, chunk: bytes):
         if self._validator:
             self._validator(chunk)
