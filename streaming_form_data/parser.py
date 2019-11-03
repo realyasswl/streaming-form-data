@@ -57,14 +57,14 @@ class StreamingFormDataParser:
         if not self._running:
             self._running = True
 
-        retval = self._parser.data_received(data)
+        result = self._parser.data_received(data)
 
-        if retval > 0:
-            if ErrorGroup.Internal <= retval < ErrorGroup.Delimiting:
+        if result > 0:
+            if ErrorGroup.Internal <= result < ErrorGroup.Delimiting:
                 message = 'internal errors'
-            elif ErrorGroup.Delimiting <= retval < ErrorGroup.PartHeaders:
+            elif ErrorGroup.Delimiting <= result < ErrorGroup.PartHeaders:
                 message = 'delimiting multipart stream into parts'
-            elif ErrorGroup.PartHeaders <= retval:
+            elif ErrorGroup.PartHeaders <= result:
                 message = 'parsing particular part headers'
 
             raise ParseFailedException(

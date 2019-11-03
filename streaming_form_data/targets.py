@@ -3,8 +3,7 @@ import hashlib
 
 class BaseTarget:
     """Targets determine what to do with some input once the parser is done with
-    it. Any new Target should inherit from this class and override
-    data_received.
+    it.
     """
 
     def __init__(self, validator=None):
@@ -26,13 +25,6 @@ class BaseTarget:
     def on_start(self):
         pass
 
-    def data_received(self, chunk: bytes):
-        self._validate(chunk)
-        self.on_data_received(chunk)
-
-    def on_data_received(self, chunk: bytes):
-        raise NotImplementedError()
-
     def finish(self):
         self.on_finish()
         self._finished = True
@@ -40,13 +32,40 @@ class BaseTarget:
     def on_finish(self):
         pass
 
+    def is_async(self):
+        raise NotImplementedError()
 
-class NullTarget(BaseTarget):
+
+class SyncTarget(BaseTarget):
+    def is_async(self):
+        return False
+
+    def data_received(self, chunk: bytes):
+        self._validate(chunk)
+        self.on_data_received(chunk)
+
+    def on_data_received(self, chunk: bytes):
+        raise NotImplementedError()
+
+
+class AsyncTarget(BaseTarget):
+    def is_async(self):
+        return True
+
+    async def data_received(self, chunk: bytes):
+        self._validate(chunk)
+        await self.on_data_received(chunk)
+
+    async def on_data_received(self, chunk: bytes):
+        raise NotImplementedError()
+
+
+class NullTarget(SyncTarget):
     def on_data_received(self, chunk: bytes):
         pass
 
 
-class ValueTarget(BaseTarget):
+class ValueTarget(SyncTarget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -60,7 +79,7 @@ class ValueTarget(BaseTarget):
         return b''.join(self._values)
 
 
-class FileTarget(BaseTarget):
+class FileTarget(SyncTarget):
     def __init__(self, filename, allow_overwrite=True, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -79,7 +98,7 @@ class FileTarget(BaseTarget):
         self._fd.close()
 
 
-class SHA256Target(BaseTarget):
+class SHA256Target(SyncTarget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
